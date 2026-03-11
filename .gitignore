@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Build artifacts
+AlwaysAwake.app/
+tmp/
+
+# Generated files
+AppIcon.iconset/
+*.icns
+*.png
+
+# Build tools output
+round_icon
+set_app_icon
+crop_icon_swift
+make_icons
