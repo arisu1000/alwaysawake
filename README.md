@@ -2,7 +2,7 @@
 
 **AlwaysAwake** is a sleek, lightweight macOS menu bar utility and command-line application that prevents your Mac from going to sleep or displaying the screensaver. 
 
-![App Icon](AppIcon.icns)
+![App Icon](alwaysawake_final_icon.png)
 
 ## Features
 

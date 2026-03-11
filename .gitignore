@@ -9,6 +9,7 @@ tmp/
 AppIcon.iconset/
 *.icns
 *.png
+!alwaysawake_final_icon.png
 
 # Build tools output
 round_icon
