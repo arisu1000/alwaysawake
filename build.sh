@@ -86,19 +86,30 @@ let sizes: [(String, Int)] = [
     ("icon_512x512@2x.png", 1024)
 ]
 
-for (name, size) in sizes {
-    let newSize = NSSize(width: CGFloat(size), height: CGFloat(size))
-    let newImage = NSImage(size: newSize)
-    newImage.lockFocus()
+for (name, pixelSize) in sizes {
+    guard let rep = NSBitmapImageRep(
+        bitmapDataPlanes: nil,
+        pixelsWide: pixelSize,
+        pixelsHigh: pixelSize,
+        bitsPerSample: 8,
+        samplesPerPixel: 4,
+        hasAlpha: true,
+        isPlanar: false,
+        colorSpaceName: .deviceRGB,
+        bytesPerRow: 0,
+        bitsPerPixel: 0
+    ) else { continue }
+    rep.size = NSSize(width: pixelSize, height: pixelSize)
+
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: rep)
     NSGraphicsContext.current?.imageInterpolation = .high
-    image.draw(in: NSRect(origin: .zero, size: newSize),
+    image.draw(in: NSRect(x: 0, y: 0, width: pixelSize, height: pixelSize),
                from: NSRect(origin: .zero, size: image.size),
                operation: .copy, fraction: 1.0)
-    newImage.unlockFocus()
+    NSGraphicsContext.restoreGraphicsState()
 
-    if let tiffRep = newImage.tiffRepresentation,
-       let bitmapRep = NSBitmapImageRep(data: tiffRep),
-       let pngData = bitmapRep.representation(using: .png, properties: [:]) {
+    if let pngData = rep.representation(using: .png, properties: [:]) {
         let outPath = (outputDir as NSString).appendingPathComponent(name)
         try? pngData.write(to: URL(fileURLWithPath: outPath))
     }
