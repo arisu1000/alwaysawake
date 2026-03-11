@@ -56,28 +56,60 @@ EOF
 
 if [ -f "$ICON_SOURCE" ]; then
     echo "Converting App Icon to standard .icns format..."
-    cat <<'EOF_SWIFT' > "$TMPDIR/make_icns.swift"
+    ICONSET_DIR="$TMPDIR/AppIcon.iconset"
+    mkdir -p "$ICONSET_DIR"
+
+    cat <<'EOF_SWIFT' > "$TMPDIR/make_iconset.swift"
 import Cocoa
-import CoreGraphics
-import UniformTypeIdentifiers
 
 let args = CommandLine.arguments
-if args.count < 3 { exit(1) }
+if args.count < 3 {
+    print("Usage: make_iconset <input_png> <output_iconset_dir>")
+    exit(1)
+}
 
-guard let sourceImage = NSImage(contentsOfFile: args[1]) else { exit(1) }
-guard let tiffData = sourceImage.tiffRepresentation,
-      let bitmap = NSBitmapImageRep(data: tiffData),
-      let cgImage = bitmap.cgImage else { exit(1) }
+guard let image = NSImage(contentsOfFile: args[1]) else {
+    print("Cannot read image"); exit(1)
+}
 
-let url = URL(fileURLWithPath: args[2])
-guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "com.apple.icns" as CFString, 1, nil) else { exit(1) }
+let outputDir = args[2]
+let sizes: [(String, Int)] = [
+    ("icon_16x16.png", 16),
+    ("icon_16x16@2x.png", 32),
+    ("icon_32x32.png", 32),
+    ("icon_32x32@2x.png", 64),
+    ("icon_128x128.png", 128),
+    ("icon_128x128@2x.png", 256),
+    ("icon_256x256.png", 256),
+    ("icon_256x256@2x.png", 512),
+    ("icon_512x512.png", 512),
+    ("icon_512x512@2x.png", 1024)
+]
 
-CGImageDestinationAddImage(dest, cgImage, nil)
-CGImageDestinationFinalize(dest)
+for (name, size) in sizes {
+    let newSize = NSSize(width: CGFloat(size), height: CGFloat(size))
+    let newImage = NSImage(size: newSize)
+    newImage.lockFocus()
+    NSGraphicsContext.current?.imageInterpolation = .high
+    image.draw(in: NSRect(origin: .zero, size: newSize),
+               from: NSRect(origin: .zero, size: image.size),
+               operation: .copy, fraction: 1.0)
+    newImage.unlockFocus()
+
+    if let tiffRep = newImage.tiffRepresentation,
+       let bitmapRep = NSBitmapImageRep(data: tiffRep),
+       let pngData = bitmapRep.representation(using: .png, properties: [:]) {
+        let outPath = (outputDir as NSString).appendingPathComponent(name)
+        try? pngData.write(to: URL(fileURLWithPath: outPath))
+    }
+}
+print("Iconset created successfully")
 EOF_SWIFT
 
-    swiftc -module-cache-path "$TMPDIR/module-cache" -O "$TMPDIR/make_icns.swift" -o "$TMPDIR/make_icns"
-    "$TMPDIR/make_icns" "$ICON_SOURCE" "${RESOURCES_DIR}/AppIcon.icns"
+    swiftc -module-cache-path "$TMPDIR/module-cache" -O "$TMPDIR/make_iconset.swift" -o "$TMPDIR/make_iconset"
+    "$TMPDIR/make_iconset" "$ICON_SOURCE" "$ICONSET_DIR"
+    iconutil -c icns "$ICONSET_DIR" -o "${RESOURCES_DIR}/AppIcon.icns"
+    rm -rf "$ICONSET_DIR"
 fi
 
 echo "Signing the application bundle..."
