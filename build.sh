@@ -26,6 +26,7 @@ swiftc -module-cache-path "$TMPDIR/module-cache" \
 
 
 echo "Generating Info.plist..."
+echo "APPL????" > "${CONTENTS_DIR}/PkgInfo"
 cat <<EOF > "${CONTENTS_DIR}/Info.plist"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -41,8 +42,14 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
     <string>${APP_NAME}</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
     <key>LSUIElement</key>
-    <true/> <!-- Hides app from Dock -->
+    <true/>
 </dict>
 </plist>
 EOF
@@ -73,4 +80,8 @@ EOF_SWIFT
     "$TMPDIR/make_icns" "$ICON_SOURCE" "${RESOURCES_DIR}/AppIcon.icns"
 fi
 
+echo "Signing the application bundle..."
+codesign --force --deep --sign - "${TARGET_DIR}"
+
 echo "Build complete! App is located at: $(pwd)/${TARGET_DIR}"
+
