@@ -48,20 +48,29 @@ cat <<EOF > "${CONTENTS_DIR}/Info.plist"
 EOF
 
 if [ -f "$ICON_SOURCE" ]; then
-    echo "Converting App Icon..."
-    echo "Setting App Icon using NSWorkspace..."
-    cat <<'EOF_SWIFT' > "$TMPDIR/set_icon.swift"
+    echo "Converting App Icon to standard .icns format..."
+    cat <<'EOF_SWIFT' > "$TMPDIR/make_icns.swift"
 import Cocoa
+import CoreGraphics
+import UniformTypeIdentifiers
+
 let args = CommandLine.arguments
 if args.count < 3 { exit(1) }
-if let image = NSImage(contentsOfFile: args[1]) {
-    _ = NSWorkspace.shared.setIcon(image, forFile: args[2], options: [])
-}
+
+guard let sourceImage = NSImage(contentsOfFile: args[1]) else { exit(1) }
+guard let tiffData = sourceImage.tiffRepresentation,
+      let bitmap = NSBitmapImageRep(data: tiffData),
+      let cgImage = bitmap.cgImage else { exit(1) }
+
+let url = URL(fileURLWithPath: args[2])
+guard let dest = CGImageDestinationCreateWithURL(url as CFURL, "com.apple.icns" as CFString, 1, nil) else { exit(1) }
+
+CGImageDestinationAddImage(dest, cgImage, nil)
+CGImageDestinationFinalize(dest)
 EOF_SWIFT
 
-    swiftc -module-cache-path "$TMPDIR/module-cache" -O "$TMPDIR/set_icon.swift" -o "$TMPDIR/set_icon"
-    "$TMPDIR/set_icon" "$ICON_SOURCE" "${TARGET_DIR}"
-    touch "${TARGET_DIR}"
+    swiftc -module-cache-path "$TMPDIR/module-cache" -O "$TMPDIR/make_icns.swift" -o "$TMPDIR/make_icns"
+    "$TMPDIR/make_icns" "$ICON_SOURCE" "${RESOURCES_DIR}/AppIcon.icns"
 fi
 
 echo "Build complete! App is located at: $(pwd)/${TARGET_DIR}"
