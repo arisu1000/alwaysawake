@@ -10,6 +10,8 @@
 - **Dynamic Icon Status**: The beautiful cup icon solidifies when the app is actively keeping your screen awake.
 - **Inline Menu Bar Timer**: See exactly how much time is remaining directly next to the menu bar icon, so you don't even need to click to check the status.
 - **Indefinite Mode**: Keep your computer awake continuously until you decide otherwise (indicated by a small `∞` next to the icon).
+- **Flexible Timer Durations**: Choose from 5 minutes up to 8 hours (5m, 15m, 30m, 1h, 2h, 3h, 4h, 6h, 8h).
+- **Launch at Login**: Optionally start AlwaysAwake automatically when you log in, via a menu bar toggle.
 - **CLI Support**: Control the sleep assertion cleanly from the terminal for automation and scripting purposes.
 
 ## Installation and Usage
@@ -21,8 +23,9 @@ For easy access, you can drag and drop it into your `/Applications` directory.
 ### GUI (Menu Bar) Usage
 1. Double-click `AlwaysAwake.app`.
 2. A coffee cup icon `☕️` will appear in your top-right menu bar.
-3. Click the icon to select your preferred duration to keep your Mac awake, or select "Keep Awake Indefinitely". 
+3. Click the icon to select your preferred duration (5m–8h) to keep your Mac awake, or select "Keep Awake Indefinitely".
 4. The icon will fill in (`☕️` -> `☕️(Filled)`) to indicate the timer is active.
+5. Optionally toggle **Launch at Login** from the menu to start automatically on login.
 
 ### CLI (Terminal) Usage
 To run the application purely through the terminal without launching the Menu Bar GUI, you can invoke the executable directly:
